@@ -8,14 +8,12 @@ if (args.length == 0) {
   console.log("Usage: receive_logs_direct.js [info] [warning] [error]");
   process.exit(1);
 }
-const credentials = { username: 'rabbitmquser', password: 'some_password' }; 
 
-// amqp.connect('amqp://rabbitmq:5672/',credentials, function (error0, connection) {
-amqp.connect('amqp://localhost:5672', function(error0, connection) {
+amqp.connect('amqp://guest:guest@rabbitmq', function (error0, connection) {
   if (error0) {
     throw error0;
   }
-  connection.createChannel(function(error1, channel) {
+  connection.createChannel(function (error1, channel) {
     if (error1) {
       throw error1;
     }
@@ -27,17 +25,17 @@ amqp.connect('amqp://localhost:5672', function(error0, connection) {
 
     channel.assertQueue('', {
       exclusive: true
-      }, function(error2, q) {
-        if (error2) {
-          throw error2;
-        }
+    }, function (error2, q) {
+      if (error2) {
+        throw error2;
+      }
       console.log(' [*] Waiting for logs. To exit press CTRL+C');
 
-      args.forEach(function(severity) {
+      args.forEach(function (severity) {
         channel.bindQueue(q.queue, exchange, severity);
       });
 
-      channel.consume(q.queue, function(msg) {
+      channel.consume(q.queue, function (msg) {
         console.log(" [x] %s: '%s'", msg.fields.routingKey, msg.content.toString());
       }, {
         noAck: true

@@ -3,7 +3,7 @@
 var amqp = require('amqplib/callback_api');
 const credentials = { username: 'rabbitmquser', password: 'some_password' };
 // amqp.connect('amqp://rabbitmq:5672/', credentials, function (error0, connection) {
-amqp.connect('amqp://localhost:5672', function (error0, connection) {
+amqp.connect('amqp://guest:guest@rabbitmq', function (error0, connection) {
 
     if (error0) {
         throw error0;

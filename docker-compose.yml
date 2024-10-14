@@ -1,19 +1,18 @@
 version: "3.10"
 services:
   rabbitmq:
-    hostname: "rabbitmq"
     image: "rabbitmq:3-management"
     container_name: "rabbitmq"
     ports:
       - "5672:5672"
       - "15672:15672"
-    stdin_open: true
-    tty: true
-    # networks:
-    #   - my-network
-    # environment:
-    #   - RABBITMQ_DEFAULT_USER=rabbitmquser
-    #   - RABBITMQ_DEFAULT_PASS=some_password 
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./rabbitmq_data:/var/lib/rabbitmq
 
   sender:
     image: 'sender'
@@ -22,12 +21,10 @@ services:
     ports:
       - "8000:8000"
     command: node emit_log_direct.js
-    stdin_open: true
-    tty: true
     depends_on:
-      - "rabbitmq"
-    # networks:
-    #   - my-network
+      rabbitmq:
+        condition: "service_healthy"
+    
 
   receiver:
     image: 'receiver'
@@ -36,13 +33,6 @@ services:
     ports:
       - "8001:8001"
     command: "node receive_logs_direct.js info"
-    stdin_open: true
-    tty: true
     depends_on:
-      - "rabbitmq"
-    # networks:
-    #   - my-network
-
-networks:
-  my-network:
-    driver: bridge
+      rabbitmq:
+        condition: "service_healthy"
