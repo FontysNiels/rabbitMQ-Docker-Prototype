@@ -1,38 +1,43 @@
-version: "3.10"
+version: '3'
 services:
-  rabbitmq:
-    image: "rabbitmq:3-management"
-    container_name: "rabbitmq"
+  service_a:
+    container_name: service_a
+    build: ./service_a
+    volumes:
+      - ./service_a:/usr/src/app
     ports:
-      - "5672:5672"
+      - "5000:5000"
+    restart: always
+    depends_on:
+      rabbitmq: 
+        condition: service_healthy
+
+  service_b:
+    container_name: service_b
+    build: ./service_b
+    volumes:
+      - ./service_b:/usr/src/app
+    ports:
+      - "5001:5001"
+    restart: always
+    depends_on:
+      rabbitmq: 
+        condition: service_healthy
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management
+    ports:
       - "15672:15672"
+      - "5672:5672"
+      - "5552:5552"
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 10s
       timeout: 10s
       retries: 3
-    volumes:
-      - ./rabbitmq_data:/var/lib/rabbitmq
-
-  sender:
-    image: 'sender'
-    container_name: 'sender'
-    build: ./sender/
-    ports:
-      - "8000:8000"
-    command: node emit_log_direct.js
-    depends_on:
-      rabbitmq:
-        condition: "service_healthy"
     
-
-  receiver:
-    image: 'receiver'
-    container_name: 'receiver'
-    build: ./receiver/
-    ports:
-      - "8001:8001"
-    command: "node receive_logs_direct.js info"
-    depends_on:
-      rabbitmq:
-        condition: "service_healthy"

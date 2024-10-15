@@ -3,7 +3,7 @@
 var amqp = require('amqplib/callback_api');
 const credentials = { username: 'rabbitmquser', password: 'some_password' };
 // amqp.connect('amqp://rabbitmq:5672/', credentials, function (error0, connection) {
-amqp.connect('amqp://guest:guest@rabbitmq', function (error0, connection) {
+amqp.connect('amqp://rabbitmq:rabbitmq@localhost', function (error0, connection) {
 
     if (error0) {
         throw error0;
@@ -14,7 +14,7 @@ amqp.connect('amqp://guest:guest@rabbitmq', function (error0, connection) {
         }
         var exchange = 'direct_logs';
         var args = process.argv.slice(2);
-        var msg = args.slice(1).join(' ') || 'Hello World!';
+        var msg = args.slice(1).join(' ') || 'I sent this message';
         var severity = (args.length > 0) ? args[0] : 'info';
 
         channel.assertExchange(exchange, 'direct', {
